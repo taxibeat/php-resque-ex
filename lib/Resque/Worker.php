@@ -94,6 +94,10 @@ class Resque_Worker
 
     protected $logger = null;
 
+    /** @var  Redis health checks */
+    protected $last_redis_check;
+    protected $redis_check_interval;
+
     /**
      * Return all workers known to Resque as instantiated instances.
      * @return array
@@ -163,9 +167,13 @@ class Resque_Worker
      * this method.
      *
      * @param string|array $queues String with a single queue name, array with multiple.
+     * @param int $check_interval An interval in seconds for checking redis connectivity status
      */
-    public function __construct($queues)
+    public function __construct($queues, $check_interval = 5)
     {
+        $this->redis_check_interval = $check_interval;
+        $this->last_redis_check = 0;
+
         if (!is_array($queues)) {
             $queues = array($queues);
         }
@@ -291,7 +299,7 @@ class Resque_Worker
      *
      * @return object|boolean Instance of Resque_Job if a job is found, false if not.
      */
-    public function reserve()
+    protected function reserveImpl()
     {
         $queues = $this->queues();
         if (!is_array($queues)) {
@@ -307,6 +315,75 @@ class Resque_Worker
         }
 
         return false;
+    }
+
+    /**
+     * Attempt to reserve a job from the queues. This method decorates the original implementation
+     * to provide
+     *
+     * @return object|boolean Instance of Resque_Job if a job is found, false if not.
+     * @throws \Exception
+     */
+    public function reserve()
+    {
+        while (!$this->shutdown) {
+            try {
+                // Is it time to check the redis health?
+                if (time() - $this->last_redis_check > $this->redis_check_interval) {
+                    $this->last_redis_check = time();
+
+                    // Redis structures seem to be missing, try to re-register our worker
+                    $queues = \Resque::queues();
+                    if (empty($queues)) {
+                        $this->log(array('message' => 'Resque entries from resque disappeared; registering worker again', 'data' => array('type' => 'reconnect')), self::LOG_TYPE_INFO);
+                        $this->registerWorker();
+                    }
+                }
+
+                // Proceed with decorated method implementation
+                return $this->reserveImpl();
+            } catch (\Exception $ex) {
+                // We get an "unknown response" or "broken pipe" exception if we lose our redis connection. Try to reconnect
+                if (stripos($ex->getMessage(), "Unknown response") !== false ||
+                    stripos($ex->getMessage(), "Broken pipe") !== false
+                ) {
+                    \Resque::flush();
+                } else {
+                    throw $ex; // rethrow otherwise
+                }
+            }
+        }
+    }
+
+    public function reserve()
+    {
+        while (!$this->shutdown) {
+            try {
+                // Is it time to check the redis health?
+                if (time() - $this->last_redis_check > $this->redis_check_interval) {
+                    $this->last_redis_check = time();
+
+                    // Redis structures seem to be missing, try to re-register our worker
+                    $queues = \Resque::queues();
+                    if (empty($queues)) {
+                        $this->log(array('message' => 'Resque entries from resque disappeared; registering worker again', 'data' => array('type' => 'reconnect')), self::LOG_TYPE_INFO);
+                        $this->registerWorker();
+                    }
+                }
+
+                // Proceed with normal reservation
+                return parent::reserve();
+            } catch (\Exception $ex) {
+                // We get an "unknown response" or "broken pipe" exception if we lose our redis connection. Try to reconnect
+                if (stripos($ex->getMessage(), "Unknown response") !== false ||
+                    stripos($ex->getMessage(), "Broken pipe") !== false
+                ) {
+                    $this->reestablishRedisConnection();
+                } else {
+                    throw $ex; // rethrow otherwise
+                }
+            }
+        }
     }
 
     /**
@@ -430,8 +507,17 @@ class Resque_Worker
      */
     public function reestablishRedisConnection()
     {
-        $this->log(array('message' => 'SIGPIPE received; attempting to reconnect', 'data' => array('type' => 'reconnect')), self::LOG_TYPE_INFO);
-        Resque::redis()->establishConnection();
+        while (!$this->shutdown) {
+            $this->log(array('message' => 'SIGPIPE received; attempting to reconnect', 'data' => array('type' => 'reconnect')), self::LOG_TYPE_INFO);
+            try {
+                \Taxibeat\Service\Redis\SingletonRedisFactory::flush();
+                Resque::redis();
+                $this->log(array('message' => 'Connection re-established', 'data' => array('type' => 'reconnect')), self::LOG_TYPE_INFO);
+                break;
+            } catch (\Exception $ex) {
+                sleep(10);
+            }
+        }
     }
 
     /**
@@ -699,5 +785,14 @@ class Resque_Worker
     public function getStat($stat)
     {
         return Resque_Stat::get($stat . ':' . $this);
+    }
+
+    /**
+     * Check if the worker is currently shutting down
+     * @return bool
+     */
+    public function isShuttingDown()
+    {
+        return $this->shutdown;
     }
 }
