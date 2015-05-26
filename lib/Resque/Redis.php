@@ -4,7 +4,7 @@ if (class_exists('Redis'))
 {
 	class RedisApi extends Redis
 	{
-		private static $defaultNamespace = 'resque:';
+		private static $defaultNamespace = '';
 
 		public function __construct($host, $port, $timeout = 5, $password = null)
 		{
@@ -63,7 +63,7 @@ else
 		 * Redis namespace
 		 * @var string
 		 */
-		private static $defaultNamespace = 'resque:';
+		private static $defaultNamespace = '';
 		/**
 		 * @var array List of all commands in Redis that supply a key as their
 		 *	first argument. Used to prefix keys with the Resque namespace.
