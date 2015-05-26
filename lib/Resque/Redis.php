@@ -146,6 +146,9 @@ else
 		 * @return mixed Return value from Resident::call() based on the command.
 		 */
 		public function __call($name, $args) {
+			// Parent accepts any-cased names. make sure we can compare to our list
+			$name = strtolower($name);
+
 			$args = func_get_args();
 			if(in_array($name, $this->keyCommands)) {
 				$args[1][0] = self::$defaultNamespace . $args[1][0];
