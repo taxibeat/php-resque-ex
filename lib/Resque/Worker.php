@@ -212,7 +212,7 @@ class Resque_Worker
                 try {
                     $job = $this->reserve();
                 }
-                catch (\RedisException $e) {
+                catch (\Exception $e) {
                     $this->log(array('message' => 'Redis exception caught: ' . $e->getMessage(), 'data' => array('type' => 'fail', 'log' => $e->getMessage(), 'time' => time())), self::LOG_TYPE_ALERT);
                 }
             }
@@ -347,38 +347,7 @@ class Resque_Worker
                 if (stripos($ex->getMessage(), "Unknown response") !== false ||
                     stripos($ex->getMessage(), "Broken pipe") !== false
                 ) {
-                    \Resque::flush();
-                } else {
-                    throw $ex; // rethrow otherwise
-                }
-            }
-        }
-    }
-
-    public function reserve()
-    {
-        while (!$this->shutdown) {
-            try {
-                // Is it time to check the redis health?
-                if (time() - $this->last_redis_check > $this->redis_check_interval) {
-                    $this->last_redis_check = time();
-
-                    // Redis structures seem to be missing, try to re-register our worker
-                    $queues = \Resque::queues();
-                    if (empty($queues)) {
-                        $this->log(array('message' => 'Resque entries from resque disappeared; registering worker again', 'data' => array('type' => 'reconnect')), self::LOG_TYPE_INFO);
-                        $this->registerWorker();
-                    }
-                }
-
-                // Proceed with normal reservation
-                return parent::reserve();
-            } catch (\Exception $ex) {
-                // We get an "unknown response" or "broken pipe" exception if we lose our redis connection. Try to reconnect
-                if (stripos($ex->getMessage(), "Unknown response") !== false ||
-                    stripos($ex->getMessage(), "Broken pipe") !== false
-                ) {
-                    $this->reestablishRedisConnection();
+                    \Taxibeat\Service\Redis\SingletonRedisFactory::flush();
                 } else {
                     throw $ex; // rethrow otherwise
                 }
@@ -572,7 +541,7 @@ class Resque_Worker
      */
     public function pruneDeadWorkers()
     {
-        $workerPids = $this->workerPids();
+        $workerPids = self::workerPids();
         $workers = self::all();
         foreach ($workers as $worker) {
             if (is_object($worker)) {
@@ -592,14 +561,32 @@ class Resque_Worker
      *
      * @return array Array of Resque worker process IDs.
      */
-    public function workerPids()
+    public static function workerPids()
     {
-        $pids = array();
-        exec('ps -A -o pid,command | grep [r]esque', $cmdOutput);
-        foreach ($cmdOutput as $line) {
-            list($pids[]) = explode(' ', trim($line), 2);
+        // Find PIDs of all resque workers and fetch cwd for each pid
+        $find_worker_pids = 'ps -ef | grep resque | grep -v "grep" | awk \'{print $2}\' | xargs pwdx 2>/dev/null';
+
+        // Find root app folder
+        $app_cwd = explode('/vendor', realpath(dirname(__FILE__)))[0];
+
+        // Fetch pid of current process
+        $my_pid = getmygid();
+
+        // Get list of running worker pids and filter out our own pid and any processes not sharing our CWD
+        $worker_pids_and_cwds = [];
+        exec($find_worker_pids, $worker_pids_and_cwds);
+        $worker_pids = [];
+        foreach ($worker_pids_and_cwds as $entry) {
+            list($pid, $cwd) = explode(': ', $entry);
+
+            if ($pid == $my_pid || strpos($cwd, $app_cwd) === FALSE) {
+                continue;
+            }
+
+            $worker_pids[] = $pid;
         }
-        return $pids;
+
+        return $worker_pids;
     }
 
     /**
