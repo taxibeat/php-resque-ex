@@ -14,101 +14,13 @@ class Resque
 	const VERSION = '1.2.5';
 
 	/**
-	 * @var Resque_Redis Instance of Resque_Redis that talks to redis.
-	 */
-	public static $redis = null;
-
-	/**
-	 * @var mixed Host/port conbination separated by a colon, or a nested
-	 * array of server swith host/port pairs
-	 */
-	protected static $redisServer = null;
-
-	/**
-	 * @var int ID of Redis database to select.
-	 */
-	protected static $redisDatabase = 0;
-
-	/**
-	 * @var string namespace of the redis keys
-	 */
-	protected static $namespace = '';
-
-	/**
-	 * @var string password for the redis server
-	 */
-	protected static $password = null;
-
-	/**
-	 * @var int PID of current process. Used to detect changes when forking
-	 *  and implement "thread" safety to avoid race conditions.
-	 */
-	 protected static $pid = null;
-
-	/**
-	 * Given a host/port combination separated by a colon, set it as
-	 * the redis server that Resque will talk to.
-	 *
-	 * @param mixed $server Host/port combination separated by a colon, or
-	 *                      a nested array of servers with host/port pairs.
-	 * @param int $database
-	 */
-	public static function setBackend($server, $database = 0, $namespace = 'resque', $password = null)
-	{
-		self::$redisServer   = $server;
-		self::$redisDatabase = $database;
-		self::$redis         = null;
-		self::$namespace 	 = $namespace;
-		self::$password 	 = $password;
-	}
-
-	/**
 	 * Return an instance of the Resque_Redis class instantiated for Resque.
 	 *
 	 * @return Resque_Redis Instance of Resque_Redis.
 	 */
 	public static function redis()
 	{
-		// Detect when the PID of the current process has changed (from a fork, etc)
-		// and force a reconnect to redis.
-		$pid = getmypid();
-		if (self::$pid !== $pid) {
-			self::$redis = null;
-			self::$pid   = $pid;
-		}
-
-		if(!is_null(self::$redis)) {
-			return self::$redis;
-		}
-
-		$server = self::$redisServer;
-		if (empty($server)) {
-			$server = 'localhost:6379';
-		}
-
-		if(is_array($server)) {
-			require_once dirname(__FILE__) . '/Resque/RedisCluster.php';
-			self::$redis = new Resque_RedisCluster($server);
-		}
-		else {
-			if (strpos($server, 'unix:') === false) {
-				list($host, $port) = explode(':', $server);
-			}
-			else {
-				$host = $server;
-				$port = null;
-			}
-			require_once dirname(__FILE__) . '/Resque/Redis.php';
-			$redisInstance = new Resque_Redis($host, $port, self::$password);
-			$redisInstance->prefix(self::$namespace);
-			self::$redis = $redisInstance;
-		}
-
-		if(!empty(self::$redisDatabase)) {
-			self::$redis->select(self::$redisDatabase);
-		}
-
-		return self::$redis;
+		return \Taxibeat\Service\DI\DI::lookup('redis', 'resque');
 	}
 
 	/**
