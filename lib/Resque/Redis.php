@@ -63,7 +63,8 @@ else
 		 * Redis namespace
 		 * @var string
 		 */
-		private static $defaultNamespace = '';
+		private $namespace = '';
+
 		/**
 		 * @var array List of all commands in Redis that supply a key as their
 		 *	first argument. Used to prefix keys with the Resque namespace.
@@ -134,7 +135,7 @@ else
 			if (strpos($namespace, ':') === false) {
 				$namespace .= ':';
 			}
-			self::$defaultNamespace = $namespace;
+			$this->namespace = $namespace;
 		}
 
 		/**
@@ -151,7 +152,7 @@ else
 
 			$args = func_get_args();
 			if(in_array($name, $this->keyCommands)) {
-				$args[1][0] = self::$defaultNamespace . $args[1][0];
+				$args[1][0] = $this->namespace . $args[1][0];
 			}
 			try {
 				return parent::__call($name, $args[1]);
