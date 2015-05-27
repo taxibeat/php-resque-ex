@@ -566,11 +566,12 @@ class Resque_Worker
         // Find PIDs of all resque workers and fetch cwd for each pid
         $find_worker_pids = 'ps -ef | grep resque | grep -v "grep" | awk \'{print $2}\' | xargs pwdx 2>/dev/null';
 
-        // Find root app folder
+        // Find root app folder and append resque binary path
         $app_cwd = explode('/vendor', realpath(dirname(__FILE__)))[0];
+        $app_cwd .= '/app/tools/queue';
 
         // Fetch pid of current process
-        $my_pid = getmygid();
+        $my_pid = getmypid();
 
         // Get list of running worker pids and filter out our own pid and any processes not sharing our CWD
         $worker_pids_and_cwds = [];
