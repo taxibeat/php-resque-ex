@@ -567,8 +567,7 @@ class Resque_Worker
         $find_worker_pids = 'ps -ef | grep resque | grep -v "grep" | awk \'{print $2}\' | xargs pwdx 2>/dev/null';
 
         // Find root app folder and append resque binary path
-        $app_cwd = explode('/vendor', realpath(dirname(__FILE__)))[0];
-        $app_cwd .= '/app/tools/queue';
+        $app_cwd = dirname(explode('/vendor', realpath(dirname(__FILE__)))[0]);
 
         // Fetch pid of current process
         $my_pid = getmypid();
