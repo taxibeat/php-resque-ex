@@ -10,3 +10,4 @@ Thumbs.db
 
 /composer.phar
 /vendor/
+/test/config/redis.pid

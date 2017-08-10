@@ -1,7 +1,7 @@
 <?php
 
 if (class_exists('\Predis\Client')) {
-    class RedisApi extends \Resque\Predis\Redis
+    class RedisApi extends Resque_Predis
     {
         private static $defaultNamespace = '';
 
@@ -183,17 +183,17 @@ if (class_exists('\Predis\Client')) {
     }
 }
 
-class Resque_Redis extends redisApi
+class Resque_Redis extends RedisApi
 {
 
     public function __construct($host, $port, $password = null, $timeout = 5, $phpiredis = false)
     {
-        if (is_subclass_of($this, '\Resque\Predis\Redis')) {
-            parent::__construct($host, $port, 5, $password);
+        if (is_subclass_of($this, 'Resque_Predis')) {
+            parent::__construct($host, $port, $timeout, $password);
         } elseif (is_subclass_of($this, '\Redis')) {
-            parent::__construct($host, $port, 5, $password);
+            parent::__construct($host, $port, $timeout, $password);
         } else {
-            parent::__construct($host, $port, 5);
+            parent::__construct($host, $port, $timeout);
         }
 
     }

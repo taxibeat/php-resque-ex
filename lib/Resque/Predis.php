@@ -1,10 +1,6 @@
 <?php
 
-namespace Resque\Predis;
-
-use Predis;
-
-class Redis
+class Resque_Predis
 {
     /**
      * Default Redis connection scheme
@@ -47,14 +43,14 @@ class Redis
         'phpiredis' => self::DEFAULT_PHPIREDIS
     );
     /**
-     * @var Redis Redis instance
+     * @var \Predis\Client Redis instance
      */
     protected static $instance = null;
 
     /**
      * Establish a Redis connection
      *
-     * @return Redis
+     * @return  \Predis\Client
      */
     public static function instance()
     {
@@ -164,16 +160,14 @@ class Redis
      * Establish a Redis connection.
      *
      * @param  array $config Array of configuration settings
-     *
-     * @return Redis
      */
     public function __construct(array $config = array())
     {
         // configuration params array
         $params = array(
-            'scheme' => $config['scheme'],
-            'host' => $config['host'],
-            'port' => $config['port']
+            'scheme' => isset($config['scheme']) ? $config['scheme'] : self::DEFAULT_SCHEME,
+            'host' => isset($config['host']) ? $config['host'] : self::DEFAULT_HOST,
+            'port' => isset($config['port']) ? $config['port'] : self::DEFAULT_PORT,
         );
         // setup password
         if (!empty($config['password'])) {
