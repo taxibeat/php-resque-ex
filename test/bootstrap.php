@@ -38,8 +38,7 @@ define('REDIS_HOST', 'localhost:'.$matches[1]);
 define('REDIS_DATABASE', 7);
 define('REDIS_NAMESPACE', 'testResque');
 
-Resque::setBackend(REDIS_HOST, REDIS_DATABASE, REDIS_NAMESPACE);
-// Shutdown
+//// Shutdown
 function killRedis($pid)
 {
     if (getmypid() !== $pid) {

@@ -5,7 +5,16 @@ if (class_exists('\Predis\Client')) {
     {
         private static $defaultNamespace = '';
 
-        public function __construct($host, $port, $timeout = 5, $password = null)
+        /**
+         * RedisApi constructor.
+         *
+         * @param string      $host
+         * @param string      $port
+         * @param int         $timeout
+         * @param null|string $password
+         * @param bool        $phpiredis If it should utilize phpiredis
+         */
+        public function __construct($host, $port, $timeout = 5, $password = null, $phpiredis = false)
         {
             $config = [
                 'host' => $host,
@@ -13,6 +22,7 @@ if (class_exists('\Predis\Client')) {
                 'namespace' => self::$defaultNamespace,
                 'password' => $password,
                 'rw_timeout' => $timeout,
+                'phpiredis' => $phpiredis,
             ];
             parent::__construct($config);
         }
@@ -189,7 +199,7 @@ class Resque_Redis extends RedisApi
     public function __construct($host, $port, $password = null, $timeout = 5, $phpiredis = false)
     {
         if (is_subclass_of($this, 'Resque_Predis')) {
-            parent::__construct($host, $port, $timeout, $password);
+            parent::__construct($host, $port, $timeout, $password, $phpiredis);
         } elseif (is_subclass_of($this, '\Redis')) {
             parent::__construct($host, $port, $timeout, $password);
         } else {

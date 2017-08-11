@@ -15,10 +15,4 @@ class Resque_Tests_TestCase extends PHPUnit_Framework_TestCase
         // Flush redis
         $this->redis->flushAll();
     }
-
-    public function testInstance()
-    {
-        $this->assertInstanceOf(RedisApi::class, $this->redis);
-        $this->assertTrue(is_subclass_of($this->redis, Resque_Predis::class));
-    }
 }
