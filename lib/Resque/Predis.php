@@ -17,7 +17,7 @@ class Resque_Predis
     /**
      * Default Redis namespace
      */
-    const DEFAULT_NS = 'resque';
+    const DEFAULT_NS = null;
     /**
      * Default Redis AUTH password
      */
@@ -192,8 +192,6 @@ class Resque_Predis
         // setup namespace
         if (!empty($config['namespace'])) {
             $this->setNamespace($config['namespace']);
-        } else {
-            $this->setNamespace(self::DEFAULT_NS);
         }
         // Do this to test connection is working now rather than later
         $this->redis->connect();
