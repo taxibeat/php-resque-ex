@@ -1,10 +1,8 @@
 <?php
 
 if (class_exists('\Predis\Client')) {
-    class RedisApi extends Resque_Predis
+    class RedisApi extends Predis\Client
     {
-        private static $defaultNamespace = '';
-
         /**
          * RedisApi constructor.
          *
@@ -16,15 +14,37 @@ if (class_exists('\Predis\Client')) {
          */
         public function __construct($host, $port, $timeout = 5, $password = null, $phpiredis = false)
         {
-            $config = [
+            $options = [];
+            $params = [
                 'host' => $host,
                 'port' => $port,
-                'namespace' => self::$defaultNamespace,
                 'password' => $password,
-                'rw_timeout' => $timeout,
-                'phpiredis' => $phpiredis,
+                'read_write_timeout' => $timeout,
             ];
-            parent::__construct($config);
+
+
+            if ($phpiredis) {
+                $options['connections'] = [
+                    'tcp' => 'Predis\Connection\PhpiredisStreamConnection',
+                    'unix' => 'Predis\Connection\PhpiredisSocketConnection'
+                ];
+            }
+
+            parent::__construct($params, $options);
+        }
+
+        /**
+         * Set Redis prefix
+         *
+         * @param string $prefix
+         */
+        public function prefix($prefix)
+        {
+            if (strpos($prefix, ':') === false) {
+                $prefix .= ':';
+            }
+            $prefixer = new Predis\Command\Processor\KeyPrefixProcessor($prefix);
+            $this->getProfile()->setProcessor($prefixer);
         }
     }
 } elseif (class_exists('\Redis')) {
@@ -198,7 +218,7 @@ class Resque_Redis extends RedisApi
 
     public function __construct($host, $port, $password = null, $timeout = 5, $phpiredis = false)
     {
-        if (is_subclass_of($this, 'Resque_Predis')) {
+        if (is_subclass_of($this, '\Predis\Client')) {
             parent::__construct($host, $port, $timeout, $password, $phpiredis);
         } elseif (is_subclass_of($this, '\Redis')) {
             parent::__construct($host, $port, $timeout, $password);

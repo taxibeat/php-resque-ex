@@ -159,6 +159,6 @@ class JobTest extends Resque_Tests_TestCase
         $this->assertEquals(Resque::queues(), ['jobs']);
         $this->assertEquals(Resque::size($queue), 1);
         Resque::setBackend(REDIS_HOST, REDIS_DATABASE, REDIS_NAMESPACE);
-        $this->assertEquals(Resque::size($queue), 1);
+        $this->assertEquals(Resque::size($queue), 0);
     }
 }

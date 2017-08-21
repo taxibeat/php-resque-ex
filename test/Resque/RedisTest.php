@@ -1,4 +1,7 @@
 <?php
+
+use Predis\Client;
+
 require_once __DIR__.'/../bootstrap.php';
 
 class RedisTest extends Resque_Tests_TestCase
@@ -110,7 +113,7 @@ class RedisTest extends Resque_Tests_TestCase
     public function testInstance()
     {
         $this->assertInstanceOf(RedisApi::class, $this->redis);
-        $this->assertTrue(is_subclass_of($this->redis, Resque_Predis::class));
+        $this->assertTrue(is_subclass_of($this->redis, Client::class));
 
         foreach ($this->redisent_methods as $method) {
             $this->assertTrue(is_callable(array($this->redis, $method)));
