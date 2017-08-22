@@ -14,7 +14,7 @@ if (class_exists('\Predis\Client')) {
          */
         public function __construct($host, $port, $timeout = 5, $password = null, $phpiredis = false)
         {
-            $options = ['profile' => '3.0'];
+            $options = [];
             $params = [
                 'host' => $host,
                 'port' => $port,
