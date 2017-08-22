@@ -22,7 +22,6 @@ if (class_exists('\Predis\Client')) {
                 'read_write_timeout' => $timeout,
             ];
 
-
             if ($phpiredis) {
                 $options['connections'] = [
                     'tcp' => 'Predis\Connection\PhpiredisStreamConnection',
@@ -38,13 +37,16 @@ if (class_exists('\Predis\Client')) {
          *
          * @param string $prefix
          */
-        public function prefix($prefix)
+        public function prefix($prefix = '')
         {
-            if (strpos($prefix, ':') === false) {
-                $prefix .= ':';
+            if (!empty($prefix)) {
+                if (strpos($prefix, ':') === false) {
+                    $prefix .= ':';
+                }
+
+                $processor = new Predis\Command\Processor\KeyPrefixProcessor($prefix);
+                $this->getProfile()->setProcessor($processor);
             }
-            $prefixer = new Predis\Command\Processor\KeyPrefixProcessor($prefix);
-            $this->getProfile()->setProcessor($prefixer);
         }
     }
 } elseif (class_exists('\Redis')) {
