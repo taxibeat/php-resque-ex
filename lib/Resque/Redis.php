@@ -44,7 +44,7 @@ if (class_exists('\Predis\Client')) {
                 $prefix .= ':';
             }
             $prefixer = new Predis\Command\Processor\KeyPrefixProcessor($prefix);
-            $this->getProfile()->setProcessor($prefixer);
+            $this->getOptions()->commands->setProcessor($prefixer);
         }
     }
 } elseif (class_exists('\Redis')) {
