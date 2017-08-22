@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "0e446646edda1c4db8282fec88208d97",
+    "content-hash": "b9b0e2ed2a72ce108404222a7421d498",
     "packages": [
         {
             "name": "kamisama/monolog-init",
@@ -1541,7 +1541,9 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": [],
+    "stability-flags": {
+        "predis/predis": 0
+    },
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {

@@ -14,14 +14,13 @@ if (class_exists('\Predis\Client')) {
          */
         public function __construct($host, $port, $timeout = 5, $password = null, $phpiredis = false)
         {
-            $options = [];
+            $options = ['profile' => '3.0'];
             $params = [
                 'host' => $host,
                 'port' => $port,
                 'password' => $password,
                 'read_write_timeout' => $timeout,
             ];
-
 
             if ($phpiredis) {
                 $options['connections'] = [
@@ -38,13 +37,16 @@ if (class_exists('\Predis\Client')) {
          *
          * @param string $prefix
          */
-        public function prefix($prefix)
+        public function prefix($prefix = '')
         {
-            if (strpos($prefix, ':') === false) {
-                $prefix .= ':';
+            if (!empty($prefix)) {
+                if (strpos($prefix, ':') === false) {
+                    $prefix .= ':';
+                }
+
+                $processor = new Predis\Command\Processor\KeyPrefixProcessor($prefix);
+                $this->getProfile()->setProcessor($processor);
             }
-            $prefixer = new Predis\Command\Processor\KeyPrefixProcessor($prefix);
-            $this->getOptions()->commands->setProcessor($prefixer);
         }
     }
 } elseif (class_exists('\Redis')) {
