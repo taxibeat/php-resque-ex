@@ -18,10 +18,13 @@ if (class_exists('\Predis\Client')) {
             $params = [
                 'host' => $host,
                 'port' => $port,
-                'password' => $password,
                 'timeout' => $timeout,
             ];
 
+            if (!empty($password)) {
+                $params['password'] = $password;
+            }
+            
             if ($phpiredis) {
                 $options['connections'] = [
                     'tcp' => 'Predis\Connection\PhpiredisStreamConnection',
