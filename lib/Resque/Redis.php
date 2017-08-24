@@ -19,7 +19,7 @@ if (class_exists('\Predis\Client')) {
                 'host' => $host,
                 'port' => $port,
                 'password' => $password,
-                'read_write_timeout' => $timeout,
+                'timeout' => $timeout,
             ];
 
             if ($phpiredis) {
