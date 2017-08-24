@@ -1,10 +1,11 @@
 <?php
 /**
  * Redisent, a Redis interface for the modest
- * @author Justin Poliey <jdp34@njit.edu>
+ *
+ * @author    Justin Poliey <jdp34@njit.edu>
  * @copyright 2009 Justin Poliey <jdp34@njit.edu>
- * @license http://www.opensource.org/licenses/mit-license.php The MIT License
- * @package Redisent
+ * @license   http://www.opensource.org/licenses/mit-license.php The MIT License
+ * @package   Redisent
  */
 
 define('CRLF', sprintf('%s%s', chr(13), chr(10)));
@@ -26,6 +27,7 @@ class Redisent
 {
     /**
      * Socket connection to the Redis server
+     *
      * @var resource
      * @access private
      */
@@ -33,6 +35,7 @@ class Redisent
 
     /**
      * The structure representing the data source of the Redis server
+     *
      * @var array
      * @access public
      */
@@ -40,13 +43,15 @@ class Redisent
 
     /**
      * Flag indicating whether or not commands are being pipelined
+     *
      * @var boolean
      * @access private
      */
-    private $pipelined = FALSE;
+    private $pipelined = false;
 
     /**
      * The queue of commands to be sent to the Redis server
+     *
      * @var array
      * @access private
      */
@@ -55,17 +60,18 @@ class Redisent
     /**
      * Creates a Redisent connection to the Redis server at the address specified by {@link $dsn}.
      * The default connection is to the server running on localhost on port 6379.
-     * @param string $dsn The data source name of the Redis server
-     * @param int $timeout The connection timeout in seconds
+     *
+     * @param string $dsn     The data source name of the Redis server
+     * @param int    $timeout The connection timeout in seconds
      *
      * @throws \Exception on error
      */
     public function __construct($host, $port, $timeout = null)
     {
-        $timeout = $this->getTimeout($timeout = null);
+        $timeout = $this->getTimeout($timeout);
 
         $this->__sock = @fsockopen($host, $port, $errno, $errstr, $timeout);
-        if ($this->__sock === FALSE) {
+        if ($this->__sock === false) {
             throw new \Exception("{$errno} - {$errstr}");
         }
     }
@@ -78,19 +84,21 @@ class Redisent
     /**
      * Returns the Redisent instance ready for pipelining.
      * Redis commands can now be chained, and the array of the responses will be returned when {@link uncork} is called.
-     * @see uncork
+     *
+     * @see    uncork
      * @access public
      */
     public function pipeline()
     {
-        $this->pipelined = TRUE;
+        $this->pipelined = true;
 
         return $this;
     }
 
     /**
      * Flushes the commands in the pipeline queue to Redis and returns the responses.
-     * @see pipeline
+     *
+     * @see    pipeline
      * @access public
      */
     public function uncork()
@@ -99,7 +107,7 @@ class Redisent
         foreach ($this->queue as $command) {
             for ($written = 0; $written < strlen($command); $written += $fwrite) {
                 $fwrite = fwrite($this->__sock, substr($command, $written));
-                if ($fwrite === FALSE || $fwrite <= 0) {
+                if ($fwrite === false || $fwrite <= 0) {
                     throw new \Exception('Failed to write entire command to stream');
                 }
             }
@@ -114,7 +122,7 @@ class Redisent
         // Clear the queue and return the response
         $this->queue = array();
         if ($this->pipelined) {
-            $this->pipelined = FALSE;
+            $this->pipelined = false;
 
             return $responses;
         } else {
@@ -127,9 +135,9 @@ class Redisent
         /* Build the Redis unified protocol command */
         $crlf = "\r\n";
         array_unshift($args, strtoupper($name));
-        $command = '*' . count($args) . $crlf;
+        $command = '*'.count($args).$crlf;
         foreach ($args as $arg) {
-            $command .= '$' . strlen($arg) . $crlf . $arg . $crlf;
+            $command .= '$'.strlen($arg).$crlf.$arg.$crlf;
         }
 
         /* Add it to the pipeline queue */
@@ -155,12 +163,12 @@ class Redisent
             case '+':
                 $response = substr(trim($reply), 1);
                 if ($response === 'OK') {
-                    $response = TRUE;
+                    $response = true;
                 }
                 break;
             /* Bulk reply */
             case '$':
-                $response = NULL;
+                $response = null;
                 if ($reply == '$-1') {
                     break;
                 }
@@ -170,7 +178,7 @@ class Redisent
                     do {
                         $block_size = ($size - $read) > 1024 ? 1024 : ($size - $read);
                         $_response = fread($this->__sock, $block_size);
-                        if ($_response === FALSE) {
+                        if ($_response === false) {
                             throw new \Exception('Failed to read response from stream');
                         } else {
                             $read += strlen($_response);
@@ -184,7 +192,7 @@ class Redisent
             case '*':
                 $count = intval(substr($reply, 1));
                 if ($count == '-1') {
-                    return NULL;
+                    return null;
                 }
                 $response = array();
                 for ($i = 0; $i < $count; $i++) {
@@ -199,6 +207,7 @@ class Redisent
                 throw new RedisException("Unknown response: {$reply}");
                 break;
         }
+
         /* Party on */
 
         return $response;
@@ -206,7 +215,9 @@ class Redisent
 
     /**
      * Get the Timeout
+     *
      * @param  null|int $timeout
+     *
      * @return int
      */
     private function getTimeout($timeout = null)
