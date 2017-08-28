@@ -112,7 +112,7 @@ class RedisTest extends Resque_Tests_TestCase
 
     public function testInstance()
     {
-        $this->assertInstanceOf(RedisApi::class, $this->redis);
+        $this->assertInstanceOf(Resque_Redis::class, $this->redis);
         $this->assertTrue(is_subclass_of($this->redis, Client::class));
 
         foreach ($this->redisent_methods as $method) {

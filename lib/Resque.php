@@ -83,7 +83,7 @@ class Resque
                     $host = $server;
                     $port = null;
                 }
-                $redisInstance = new Resque_Redis($host, $port, self::$password);
+                $redisInstance = new Resque_Redis(['host' => $host, 'port' => $port, 'password' => self::$password]);
                 $redisInstance->prefix(self::$namespace);
                 self::$redis = $redisInstance;
             }
