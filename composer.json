@@ -1,5 +1,5 @@
 {
-  "name": "kamisama/php-resque-ex",
+  "name": "taxibeat/php-resque-ex",
   "type": "library",
   "description": "Redis backed library for creating background jobs and processing them later. PHP port based on resque for Ruby.",
   "keywords": [
