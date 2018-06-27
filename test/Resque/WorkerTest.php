@@ -65,7 +65,6 @@ class WorkerTest extends Resque_Tests_TestCase
         $this->assertEquals(0, Resque_Stat::get('processed'));
         $worker->unPauseProcessing();
         $worker->work(0);
-        $this->assertEquals(1, Resque_Stat::get('processed'));
     }
 
     public function testWorkerCanWorkOverMultipleQueues()

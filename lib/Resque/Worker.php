@@ -235,7 +235,6 @@ class Resque_Worker
 
             $this->log(array('message' => 'got ' . $job, 'data' => array('type' => 'got', 'args' => $job)), self::LOG_TYPE_INFO);
             Resque_Event::trigger('beforeFork', $job);
-            $this->workingOn($job);
 
             $workerName = $this->hostname . ':'.getmypid();
 
@@ -267,10 +266,8 @@ class Resque_Worker
             }
 
             $this->child = null;
-            $this->doneWorking();
         }
 
-        $this->unregisterWorker();
     }
 
     /**
@@ -336,7 +333,6 @@ class Resque_Worker
                     $queues = \Resque::queues();
                     if (empty($queues)) {
                         $this->log(array('message' => 'Resque entries from resque disappeared; registering worker again', 'data' => array('type' => 'reconnect')), self::LOG_TYPE_INFO);
-                        $this->registerWorker();
                     }
                 }
 
@@ -408,7 +404,6 @@ class Resque_Worker
         $this->registerSigHandlers();
         $this->pruneDeadWorkers();
         Resque_Event::trigger('beforeFirstFork', $this);
-        $this->registerWorker();
     }
 
     /**
