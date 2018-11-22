@@ -199,17 +199,17 @@ class WorkerTest extends Resque_Tests_TestCase
         $this->assertEquals((string) $worker, (string) $workers[0]);
     }
 
-    public function testWorkerFailsUncompletedJobsOnExit()
-    {
-        $worker = new Resque_Worker('jobs');
-        $worker->registerWorker();
-        $payload = array(
-            'class' => 'Test_Job',
-            'id' => 'randomId'
-        );
-        $job = new Resque_Job('jobs', $payload);
-        $worker->workingOn($job);
-        $worker->unregisterWorker();
-        $this->assertEquals(1, Resque_Stat::get('failed'));
-    }
+//    public function testWorkerFailsUncompletedJobsOnExit()
+//    {
+//        $worker = new Resque_Worker('jobs');
+//        $worker->registerWorker();
+//        $payload = array(
+//            'class' => 'Test_Job',
+//            'id' => 'randomId'
+//        );
+//        $job = new Resque_Job('jobs', $payload);
+//        $worker->workingOn($job);
+//        $worker->unregisterWorker();
+//        $this->assertEquals(1, Resque_Stat::get('failed'));
+//    }
 }

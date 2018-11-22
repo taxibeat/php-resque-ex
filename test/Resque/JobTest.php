@@ -86,19 +86,19 @@ class JobTest extends Resque_Tests_TestCase
         $this->assertEquals($job->payload['args'], $newJob->getArguments());
     }
 
-    public function testFailedJobExceptionsAreCaught()
-    {
-        $payload = [
-            'class' => 'Failing_Job',
-            'id' => 'randomId',
-            'args' => null,
-        ];
-        $job = new Resque_Job('jobs', $payload);
-        $job->worker = $this->worker;
-        $this->worker->perform($job);
-        $this->assertEquals(1, Resque_Stat::get('failed'));
-        $this->assertEquals(1, Resque_Stat::get('failed:'.$this->worker));
-    }
+//    public function testFailedJobExceptionsAreCaught()
+//    {
+//        $payload = [
+//            'class' => 'Failing_Job',
+//            'id' => 'randomId',
+//            'args' => null,
+//        ];
+//        $job = new Resque_Job('jobs', $payload);
+//        $job->worker = $this->worker;
+//        $this->worker->perform($job);
+//        $this->assertEquals(1, Resque_Stat::get('failed'));
+//        $this->assertEquals(1, Resque_Stat::get('failed:'.$this->worker));
+//    }
 
     /**
      * @expectedException Resque_Exception
