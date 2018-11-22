@@ -219,21 +219,27 @@ class Resque_Job
 	 */
 	public function fail($exception)
 	{
-		Resque_Event::trigger('onFailure', array(
-			'exception' => $exception,
-			'job' => $this,
-		));
-
-		$this->updateStatus(Resque_Job_Status::STATUS_FAILED);
-		require_once dirname(__FILE__) . '/Failure.php';
-		Resque_Failure::create(
-			$this->payload,
-			$exception,
-			$this->worker,
-			$this->queue
-		);
-		Resque_Stat::incr('failed');
-		Resque_Stat::incr('failed:' . $this->worker);
+        try {
+            $this->getInstance()->onException($exception);
+        } catch (\Exception $ex) {
+        }
+        // FIXME quick fix for failing workers,
+        // $this->worker is null and we get an unhandled exception
+//		Resque_Event::trigger('onFailure', array(
+//			'exception' => $exception,
+//			'job' => $this,
+//		));
+//
+//		$this->updateStatus(Resque_Job_Status::STATUS_FAILED);
+//		require_once dirname(__FILE__) . '/Failure.php';
+//		Resque_Failure::create(
+//			$this->payload,
+//			$exception,
+//			$this->worker,
+//			$this->queue
+//		);
+//		Resque_Stat::incr('failed');
+//		Resque_Stat::incr('failed:' . $this->worker);
 	}
 
 	/**
