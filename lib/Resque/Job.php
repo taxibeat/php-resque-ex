@@ -220,7 +220,10 @@ class Resque_Job
 	public function fail($exception)
 	{
         try {
-            $this->getInstance()->onException($exception);
+           $instance = $this->getInstance();
+           if (!empty($instance) && method_exists($instance, 'onException')) {
+               $instance->onException($exception);
+           }
         } catch (\Exception $ex) {
         }
         // FIXME quick fix for failing workers,
