@@ -3,23 +3,29 @@
 class Resque_Redis extends \Predis\Client
 {
     /**
-     * @param array       $params
+     * Resque_Redis constructor.
+     *
+     * @param             $params
      * @param bool|string $replication
-     * @param bool        $phpiredis If it should utilize phpiredis
+     * @param bool        $phpiredis
+     * @param bool        $cluster_mode
      */
-    public function __construct($params, $replication = false, $phpiredis = false)
+    public function __construct($params, $replication = false, $phpiredis = false, $cluster_mode = false)
     {
         $options = [];
 
         if ($phpiredis) {
             $options['connections'] = [
                 'tcp' => 'Predis\Connection\PhpiredisStreamConnection',
-                'unix' => 'Predis\Connection\PhpiredisSocketConnection'
+                'unix' => 'Predis\Connection\PhpiredisSocketConnection',
             ];
         }
 
         if ($replication) {
             $options['replication'] = $replication;
+        }
+        if ($cluster_mode) {
+            $options['cluster'] = 'redis';
         }
 
         parent::__construct($params, $options);
