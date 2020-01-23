@@ -13,7 +13,7 @@ class Resque_Tests_TestCase extends PHPUnit_Framework_TestCase
             'host' => '127.0.0.1',
             'port' => $matches[1],
             'database' => REDIS_DATABASE
-        ], false);
+        ]);
         $this->redis->prefix(REDIS_NAMESPACE);
         // Flush redis
         $this->redis->flushAll();
