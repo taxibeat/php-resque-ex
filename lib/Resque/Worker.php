@@ -235,6 +235,7 @@ class Resque_Worker
 
             $this->log(array('message' => 'got ' . $job, 'data' => array('type' => 'got', 'args' => $job)), self::LOG_TYPE_INFO);
             Resque_Event::trigger('beforeFork', $job);
+            $this->workingOn($job);
 
             $workerName = $this->hostname . ':'.getmypid();
 
@@ -266,8 +267,10 @@ class Resque_Worker
             }
 
             $this->child = null;
+            $this->doneWorking();
         }
-
+        
+        $this->unregisterWorker();
     }
 
     /**
