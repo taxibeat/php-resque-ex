@@ -491,28 +491,34 @@ class Resque_Worker
      * Schedule a worker for shutdown. Will finish processing the current job
      * and when the timeout interval is reached, the worker will shut down.
      */
-    public function shutdown()
+    public function shutdown($signo, $siginfo = null)
     {
         $this->shutdown = true;
-        $this->log(array('message' => 'Exiting...', 'data' => array('type' => 'shutdown')), self::LOG_TYPE_INFO);
+        $data = array('type' => 'shutdown', 'signo' => $signo);
+        if ($siginfo && is_array($siginfo)) {
+            $data = array_merge($data, $siginfo);
+        }
+        $this->log(array('message' => 'Exiting...', 'data' => $data), self::LOG_TYPE_INFO);
     }
 
     /**
      * Force an immediate shutdown of the worker, killing any child jobs
      * currently running.
      */
-    public function shutdownNow()
+    public function shutdownNow($signo, $siginfo = null)
     {
-        $this->shutdown();
-        $this->killChild();
+        $this->shutdown($signo, $siginfo);
+        $this->killChild($signo, $siginfo);
     }
 
     /**
      * Kill a forked child job immediately. The job it is processing will not
      * be completed.
      */
-    public function killChild()
+    public function killChild($signo, $siginfo = null)
     {
+        Resque_Event::trigger('onBeforeKillChild', array($signo, $siginfo));
+
         if (!$this->child) {
             $this->log(array('message' => 'No child to kill.', 'data' => array('type' => 'kill', 'child' => null)), self::LOG_TYPE_DEBUG);
             return;
