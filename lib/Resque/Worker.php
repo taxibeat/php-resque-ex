@@ -517,7 +517,18 @@ class Resque_Worker
      */
     public function killChild($signo, $siginfo = null)
     {
-        Resque_Event::trigger('onBeforeKillChild', array($signo, $siginfo));
+        // Try execute any onBeforeKill handler for the current job,
+        // if the current job implements it.
+        try {
+            if ($this->currentJob && ($this->currentJob instanceof Resque_Job)) {
+                $instance = $this->currentJob->getInstance();
+                if ($instance && method_exists($instance, 'onBeforeKill')) {
+                    $instance->onBeforeKill($signo, $siginfo);
+                }
+            }
+        } catch (\Exception $ex) {
+            // Mute exception and allow to handle the rest gracefully
+        }
 
         if (!$this->child) {
             $this->log(array('message' => 'No child to kill.', 'data' => array('type' => 'kill', 'child' => null)), self::LOG_TYPE_DEBUG);
